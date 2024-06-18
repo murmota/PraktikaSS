@@ -14,6 +14,7 @@ public class Student {
     private String userSurName;
     @Column(name = "UserMiddleName")
     private String userMiddleName;
-
+    @Column(name = "ClassName")
+    private String className;
 
 }

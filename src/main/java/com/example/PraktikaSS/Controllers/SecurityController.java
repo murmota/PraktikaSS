@@ -1,7 +1,6 @@
 package com.example.PraktikaSS.Controllers;
 
 import com.example.PraktikaSS.PraktikaSSApplication;
-import com.example.PraktikaSS.dal.DataAccessLayer;
 import com.example.PraktikaSS.dto.SigninRequest;
 import com.example.PraktikaSS.dto.SignupRequest;
 import com.example.PraktikaSS.exception.UnauthorizedException;
@@ -11,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -26,25 +24,20 @@ import java.util.Set;
 @CrossOrigin(origins = "http://localhost:8080")
 public class SecurityController {
     private final UserDetailsServiceImpl userService;
-    private final DataAccessLayer dataAccessLayer;
-
+    private final JwtCore jwtCore;
+    private final PasswordEncoder passwordEncoder;
     @Autowired
-    public SecurityController(UserDetailsServiceImpl userService, DataAccessLayer dataAccessLayer) {
+    public SecurityController(UserDetailsServiceImpl userService, JwtCore jwtCore, PasswordEncoder passwordEncoder) {
         this.userService = userService;
-        this.dataAccessLayer = dataAccessLayer;
+        this.jwtCore = jwtCore;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @Autowired
-    private JwtCore jwtCore;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     @PostMapping("/signup")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
         signupRequest.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        signupRequest.setRoles(Set.of("ROLE_USER"));
+        signupRequest.setRoles(Set.of("ROLE_ADMIN"));
         String serviceResult = userService.newUser(signupRequest);
         if (Objects.equals(serviceResult, "Выберите другую почту")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(serviceResult);
@@ -52,7 +45,6 @@ public class SecurityController {
         return ResponseEntity.ok("Вы успешно зарегистрированы. Теперь можете войти в свой аккаунт.");
     }
     @PostMapping("/signin")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> signin(@RequestBody SigninRequest signinRequest) {
         UserDetails user = userService.loadUserByUsername(signinRequest.getEmail());

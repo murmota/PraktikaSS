@@ -12,6 +12,9 @@ public class Notes {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "Student_id")
+    private Student student;
     @Column(name = "noteContent")
     private String noteContent;
 }
