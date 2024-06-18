@@ -14,9 +14,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.Objects;
 import java.util.Set;
-
 
 @RestController
 @Slf4j
@@ -26,6 +28,7 @@ public class SecurityController {
     private final UserDetailsServiceImpl userService;
     private final JwtCore jwtCore;
     private final PasswordEncoder passwordEncoder;
+
     @Autowired
     public SecurityController(UserDetailsServiceImpl userService, JwtCore jwtCore, PasswordEncoder passwordEncoder) {
         this.userService = userService;
@@ -44,9 +47,10 @@ public class SecurityController {
         }
         return ResponseEntity.ok("Вы успешно зарегистрированы. Теперь можете войти в свой аккаунт.");
     }
+
     @PostMapping("/signin")
     @CrossOrigin(origins = "http://localhost:3000")
-    public ResponseEntity<?> signin(@RequestBody SigninRequest signinRequest) {
+    public ResponseEntity<?> signin(@RequestBody SigninRequest signinRequest, @RequestParam(required = false) boolean rememberMe, HttpServletResponse response) {
         UserDetails user = userService.loadUserByUsername(signinRequest.getEmail());
         if (user == null || !passwordEncoder.matches(signinRequest.getPassword(), user.getPassword())) {
             log.info("Ошибка авторизации пользователя " + signinRequest.getEmail());
@@ -55,8 +59,15 @@ public class SecurityController {
         String jwt = jwtCore.generateToken(user);
         PraktikaSSApplication.currentUser = userService.loadUserEntityByEmail(signinRequest.getEmail());
         log.info("Вход прошёл успешно");
+
+        if (rememberMe) {
+            String rememberMeToken = jwtCore.generateToken(user);  // Используем JWT для remember-me токена
+            Cookie cookie = new Cookie("remember-me", rememberMeToken);
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(1209600); // 2 недели
+            response.addCookie(cookie);
+        }
+
         return ResponseEntity.ok(jwt);
     }
-
-
 }

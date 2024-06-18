@@ -17,11 +17,13 @@ public class JwtCore {
     private String secret;
     @Value("${PraktikaSS.app.lifetime}")
     private int lifetime;
+
     private List<String> getRoles(UserDetails userDetails) {
         return userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
     }
+
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
@@ -34,7 +36,21 @@ public class JwtCore {
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
+
     public String getNameFromJwt(String token) {
+        return Jwts.parser().setSigningKey(secret).build().parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public String generateRememberMeToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date().getTime() + lifetime * 2))) // 2x lifetime
+                .signWith(SignatureAlgorithm.HS256, secret)
+                .compact();
+    }
+
+    public String getUsernameFromRememberMeToken(String token) {
         return Jwts.parser().setSigningKey(secret).build().parseClaimsJws(token).getBody().getSubject();
     }
 }

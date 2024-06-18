@@ -1,9 +1,9 @@
 package com.example.PraktikaSS.security;
 
-import com.example.PraktikaSS.security.JwtCore;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +37,27 @@ public class TokenFilter extends OncePerRequestFilter {
             if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
                 jwt = headerAuth.substring(7);
             }
+
+            if (jwt == null) {
+                // Попробуем получить токен из куки
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals("remember-me")) {
+                            jwt = cookie.getValue();
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (jwt != null) {
                 try {
-                    username = jwtCore.getNameFromJwt(jwt);
+                    username = jwtCore.getUsernameFromRememberMeToken(jwt);
                 } catch (ExpiredJwtException e) {
                     // Handle expired token
                 }
+
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     userDetails = userDetailsService.loadUserByUsername(username);
                     auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
