@@ -20,7 +20,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public String newUser(SignupRequest signupRequest) {
         User user = new User();
         user.setUserName(signupRequest.getUserName());
-        user.setPhoneNumber(signupRequest.getPhoneNumber());
+        user.setUserSurName(signupRequest.getUserSurName());
+        user.setUserMiddleName(signupRequest.getUserMiddleName());
         user.setEmail(signupRequest.getEmail());
         user.setPassword(signupRequest.getPassword());
         user.setRoles(signupRequest.getRoles());
@@ -28,13 +29,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return dataAccessLayer.newUserToDatabase(user);
     }
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = dataAccessLayer.getUserFromDatabaseByUsername(username);
-        if (user == null) return null;
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = dataAccessLayer.getUserFromDatabaseByEmail(email);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with email: " + email);
+        }
         return UserDetailsImpl.build(user);
     }
 
-    public User loadUserEntityByUsername(String username) throws UsernameNotFoundException {
-        return dataAccessLayer.getUserFromDatabaseByUsername(username);
+    public User loadUserEntityByEmail(String email) throws UsernameNotFoundException {
+        User user = dataAccessLayer.getUserFromDatabaseByEmail(email);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with email: " + email);
+        }
+        return user;
     }
+
 }

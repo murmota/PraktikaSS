@@ -16,17 +16,19 @@ import java.util.stream.Collectors;
 public class UserDetailsImpl implements UserDetails {
     private Long id;
     private String userName;
+    private String userSurName;
+    private String userMiddleName;
     private String email;
     private String password;
-    private String phoneNumber;
     private Set<String> roles;
     public static UserDetailsImpl build(User user){
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUserName(),
+                user.getUserSurName(),
+                user.getUserMiddleName(),
                 user.getEmail(),
                 user.getPassword(),
-                user.getPhoneNumber(),
                 user.getRoles());
 
     }
@@ -44,7 +46,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userName;
+        return email;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.PraktikaSS.security;
 
+import com.example.PraktikaSS.security.JwtCore;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,8 +18,10 @@ import java.io.IOException;
 
 @Component
 public class TokenFilter extends OncePerRequestFilter {
+
     @Autowired
     private JwtCore jwtCore;
+
     @Autowired
     private UserDetailsService userDetailsService;
 
@@ -28,26 +31,28 @@ public class TokenFilter extends OncePerRequestFilter {
         String username = null;
         UserDetails userDetails = null;
         UsernamePasswordAuthenticationToken auth = null;
+
         try {
             String headerAuth = request.getHeader("Authorization");
-            if (headerAuth != null && headerAuth.startsWith("Bearer ")){
+            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
                 jwt = headerAuth.substring(7);
             }
             if (jwt != null) {
                 try {
                     username = jwtCore.getNameFromJwt(jwt);
-                }
-                catch(ExpiredJwtException e){
+                } catch (ExpiredJwtException e) {
+                    // Handle expired token
                 }
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     userDetails = userDetailsService.loadUserByUsername(username);
-                    auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+                    auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             }
+        } catch (Exception e) {
+            // Handle other exceptions
         }
-        catch (Exception e) {
-        }
+
         filterChain.doFilter(request, response);
     }
 }
