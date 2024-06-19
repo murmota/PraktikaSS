@@ -175,15 +175,24 @@ public void deleteStudentById(Long studentId) {
 }
     @Transactional
     public void deleteNotesByStudentId(Long studentId) {
-        session = sessionFactory.openSession();
-        session.beginTransaction();
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaDelete<Notes> criteria = cb.createCriteriaDelete(Notes.class);
-        Root<Notes> root = criteria.from(Notes.class);
-        criteria.where(cb.equal(root.get("student").get("id"), studentId));
-        session.createQuery(criteria).executeUpdate();
-        session.close();
+        Session session = sessionFactory.openSession();
+        try {
+            session.getTransaction().begin();
+            int deletedCount = session.createQuery("DELETE FROM Notes b WHERE b.student.id = :studentId")
+                    .setParameter("studentId", studentId)
+                    .executeUpdate();
+            session.getTransaction().commit();
+            System.out.println("Deleted " + deletedCount + " notes for student ID: " + studentId);
+        } catch (Exception e) {
+            if (session.getTransaction().isActive()) {
+                session.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            session.close();
+        }
     }
+
     @Transactional
     public void updateStudentById(Long id, Student updatedStudent){
         session = sessionFactory.openSession();

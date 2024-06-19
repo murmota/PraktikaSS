@@ -84,7 +84,6 @@ public class AdminController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteNotesByStudentId(@PathVariable("id") Long id) {
         dataAccessLayer.deleteNotesByStudentId(id);
-        dataAccessLayer.deleteStudentById(id);
         return ResponseEntity.ok("Student and associated notes deleted successfully!");
     }
     @PutMapping("/update/student/{id}")
