@@ -13,7 +13,7 @@ public class Notes {
     @JoinColumn(name = "user_id")
     private User user;
     @ManyToOne
-    @JoinColumn(name = "Student_id")
+    @JoinColumn(name = "Student_id", nullable = false)
     private Student student;
     @Column(name = "noteContent")
     private String noteContent;
