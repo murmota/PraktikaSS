@@ -1,4 +1,5 @@
 package com.example.PraktikaSS.models;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,6 +21,7 @@ public class Student {
     @Column(name = "ClassName")
     private String className;
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Notes> notes;
 
 }

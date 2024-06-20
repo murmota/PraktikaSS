@@ -148,31 +148,26 @@ public class DataAccessLayer {
             session.close();
         }
     }
-//    public void deleteStudentById(Long id){
+    public void deleteStudentById(Long id){
+        session = sessionFactory.openSession();
+        session.beginTransaction();
+        Student student = session.get(Student.class, id);
+        session.remove(student);
+        session.getTransaction().commit();
+        if (session != null) {
+            session.close();
+        }
+    }
+    //    @Transactional
+//    public void deleteStudentById(Long studentId) {
 //        session = sessionFactory.openSession();
 //        session.beginTransaction();
-//        Student student = session.get(Student.class, id);
-//        session.remove(student);
-//        session.getTransaction().commit();
-//        if (session != null) {
+//        Student student = session.get(Student.class, studentId);
+//        if (student != null) {
+//            session.remove(student);
 //            session.close();
 //        }
 //    }
-@Transactional
-public void deleteStudentById(Long studentId) {
-    try (Session session = sessionFactory.openSession()) {
-        session.beginTransaction();
-        Student student = session.get(Student.class, studentId);
-        if (student != null) {
-            session.remove(student);
-            session.getTransaction().commit();
-        } else {
-            session.getTransaction().rollback();
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
     @Transactional
     public void deleteNotesByStudentId(Long studentId) {
         Session session = sessionFactory.openSession();
@@ -192,7 +187,6 @@ public void deleteStudentById(Long studentId) {
             session.close();
         }
     }
-
     @Transactional
     public void updateStudentById(Long id, Student updatedStudent){
         session = sessionFactory.openSession();
